@@ -1,0 +1,39 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  userId   Int    @id @unique
+  userName String
+}
+
+model Template {
+  ID           String   @id @unique
+  Name         String
+  Category     Category @relation(fields: [categoryName], references: [Name])
+  Role         Role     @relation(fields: [roleName], references: [Name])
+  categoryName String
+  roleName     String
+  isActive     Boolean
+}
+
+model Category {
+  Name     String     @id @unique
+  Roles    Role[]
+  Template Template[]
+}
+
+model Role {
+  Name         String     @id @unique
+  Category     Category   @relation(fields: [categoryName], references: [Name])
+  Template     Template[]
+  categoryName String
+}
