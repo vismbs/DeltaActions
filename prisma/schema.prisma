@@ -33,7 +33,7 @@ model Category {
 
 model Role {
   Name         String     @id @unique
-  Category     Category   @relation(fields: [categoryName], references: [Name])
-  Template     Template[]
   categoryName String
+  Template     Template[]
+  Category     Category?  @relation(fields: [categoryName], references: [Name])
 }
