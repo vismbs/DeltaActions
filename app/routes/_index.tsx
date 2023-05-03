@@ -54,7 +54,7 @@ export const action: ActionFunction = async ({ request }: ActionArgs) => {
     temperature: 0,
   });
 
-  const addedTemplate: Template = eval(`UserInstance.${evalFunction}`);
+  eval(`UserInstance.${evalFunction.data.choices[0].text?.replace("\n", "")}`);
 
   return json({});
 };
