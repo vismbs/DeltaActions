@@ -5,11 +5,12 @@ import {
   LoaderFunction,
   json,
 } from "@remix-run/node";
-import { Link, useLoaderData } from "@remix-run/react";
+import { Link, useActionData, useLoaderData } from "@remix-run/react";
 import PromptBar from "~/components/PromptBar";
 import { openAI } from "~/services/openai.server";
 import { serverAPI } from "~/services/router.server";
-import { AIMethod, methodList } from "~/utils/appDeco";
+import { Action, methodList } from "~/utils/appDeco";
+let logMessage = "Functions Initialized";
 
 class AIFunctions {
   constructor() {
@@ -17,23 +18,28 @@ class AIFunctions {
       console.info("Functions Initialized");
   }
 
-  @AIMethod(
+  @Action(
     "adds a template to the database and takes in template name, category name and a role name as arguments"
   )
-  addTemplate(templateName: string, categoryName: string, roleName: string) {
+  async addTemplate(templateName: string, categoryName: string, roleName: string) {
     const ID = `T${Math.floor(Math.random() * 10000)}`;
-    const addedTemplate = serverAPI.addTemplate({
+    const addedTemplate: Template | string = await serverAPI.addTemplate({
       tempCategory: categoryName,
       tempName: templateName,
       tempRole: roleName,
       tempID: ID,
     });
 
-    return addedTemplate;
+    if (typeof addedTemplate === "string") {
+      logMessage = "Category Not Found"
+      return;
+    } else {
+      return addedTemplate;
+    }
   }
 
-  @AIMethod("deletes a template and takes in a template id")
-  deleteTemplate(templateID: string) {
+  @Action("deletes a template and takes in a template id")
+  async deleteTemplate(templateID: string) {
     const deletedTemplate = serverAPI.deleteTemplate({
       templateID
     })
@@ -41,16 +47,67 @@ class AIFunctions {
     return deletedTemplate;
   }
 
-  @AIMethod("updates the title of a template and takes in a template title and template id")
-  updateTitle(templateTitle: string, templateID: string) {
-    const updatedTemplate = serverAPI.editTemplate({
-      templateName: templateTitle,
-      templateCategory: "",
+  @Action("updates the title of a template and takes in a template title and template id")
+  async updateTitle(templateTitle: string, templateID: string) {
+    const updatedTemplate = serverAPI.editTemplateName({
       templateID: templateID,
-      templateRole: ""
+      templateName: templateTitle,
     })
 
     return updatedTemplate
+  }
+
+  @Action("updates the category and the role of a template and takes in a template category name, template role name and template id")
+  async updateCategoryAndRole(templateCategory: string, templateRole: string, templateID: string) {
+
+    const getCategory = await serverAPI.getCategory({
+      categoryName: templateCategory
+    })
+
+    const existRole = getCategory?.Roles.filter(getRole => {
+      return getRole.Name.trim() == templateRole
+    })
+
+    if (existRole!.length === 0) {
+      logMessage = "Incorrect Role for the Given Category"
+      return;
+    } else {
+      const updatedTemplate = serverAPI.editTemplateCategory({
+        templateID: templateID,
+        templateCategory: templateCategory,
+        templateRole: templateRole
+      })
+
+      return updatedTemplate
+    }
+  }
+
+  @Action("updates the role of a template and takes in a template role name and template id")
+  async updateRole(templateRole: string, templateID: string) {
+
+    const getTemplate = await serverAPI.getSingleTemplate({
+      templateID: templateID
+    })
+
+    const associatedRoles = getTemplate!.Category.Roles.map(categRole => {
+      return categRole.Name
+    })
+
+    const presentRole = associatedRoles.filter(associatedRole => {
+      return associatedRole == templateRole
+    })
+
+    if (presentRole.length === 0) {
+      logMessage = "Incorrect Role"
+      return
+    } else {
+      const updatedTemplate = serverAPI.editTemplateRole({
+        templateID: templateID,
+        templateRole: templateRole,
+      })
+
+      return updatedTemplate
+    }
   }
 }
 
@@ -75,19 +132,37 @@ export const action: ActionFunction = async ({ request }: ActionArgs) => {
     max_tokens: 300
   });
 
-  try {
-    eval(`UserInstance.${evalFunction.data.choices[0].text?.replace("\n", "")}`);
-  } catch (err) {
-    console.error(err);
+
+  let isNotAFunction = false;
+
+  if (evalFunction.data.choices[0].text?.trim() === "NO_FUNCTION_FOUND") {
+    isNotAFunction = true;
+    logMessage = "Invalid Action";
+  }
+  else {
+    try {
+      eval(`UserInstance.${evalFunction.data.choices[0].text?.trim().replace("\n", "")}`);
+    } catch (error) {
+      if (error instanceof ReferenceError) {
+        logMessage = "Non-Existent Role"
+      } else {
+        console.error(error);
+      }
+    }
   }
 
-  return json({});
-};
+  return json({
+    isNotAFunction
+  });
+}
+
+
 
 const IndexPage = () => {
   const { existingTemplates }: { existingTemplates: Template[] } =
     useLoaderData<typeof loader>();
 
+  const actionData = useActionData();
   return (
     <>
       <main className="w-full flex flex-col justify-between h-screen">
@@ -95,7 +170,7 @@ const IndexPage = () => {
           <Table tableData={existingTemplates} />
         </div>
         <div>
-          <PromptBar actionRoute="?index" />
+          <PromptBar actionRoute="?index" isNotAFunction={actionData?.isNotAFunction} logMessage={logMessage} />
           <p className="w-full text-center text-xs mb-5 text-stone-500 font-sans">
             DeltaActions | Delta #2
           </p>

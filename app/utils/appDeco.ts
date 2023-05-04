@@ -4,7 +4,7 @@ export const methodList: {
     stringfiedMethod: string
 }[] = []
 
-export function AIMethod(methodDesc: string) {
+export function Action(methodDesc: string) {
     return function (targetClass: Object, methodName: string | symbol, methodDescriptor: PropertyDescriptor) {
         methodList.push({
             methodName,
