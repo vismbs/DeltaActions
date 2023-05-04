@@ -18,8 +18,8 @@ model User {
 model Template {
   ID           String   @id @unique
   Name         String
-  Category     Category @relation(fields: [categoryName], references: [Name])
-  Role         Role     @relation(fields: [roleName], references: [Name])
+  Category     Category @relation(fields: [categoryName], references: [Name], onUpdate: Cascade, onDelete: NoAction)
+  Role         Role     @relation(fields: [roleName], references: [Name], onDelete: NoAction, onUpdate: Cascade)
   categoryName String
   roleName     String
   isActive     Boolean

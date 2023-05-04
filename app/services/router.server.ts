@@ -46,6 +46,60 @@ export const appRouter = trpcRouter({
     const existingTemplate = await ctx.prisma.template.findMany();
     return existingTemplate;
   }),
+  getSingleTemplate: publicProcedure
+    .input(z.object({
+      templateID: z.string()
+    }))
+    .query(async ({ input, ctx }) => {
+      const uniqueTemplate = await ctx.prisma.template.findUnique({
+        where: {
+          ID: input.templateID
+        }
+      })
+
+      return uniqueTemplate;
+    }),
+  deleteTemplate: publicProcedure
+    .input(z.object({
+      templateID: z.string()
+    }))
+    .mutation(async ({ input, ctx }) => {
+      const deletedTemplate = await ctx.prisma.template.delete({
+        where: {
+          ID: input.templateID
+        }
+      })
+
+      return deletedTemplate
+    }),
+  editTemplate: publicProcedure
+    .input(z.object({
+      templateID: z.string(),
+      templateName: z.string(),
+      templateCategory: z.string(),
+      templateRole: z.string(),
+    }))
+    .mutation(async ({ input, ctx }) => {
+      const getTemplate = await ctx.prisma.template.findUnique({
+        where: {
+          ID: input.templateID
+        }
+      })
+
+      const updatedTemplate = await ctx.prisma.template.update({
+        where: {
+          ID: getTemplate?.ID,
+        },
+        data: {
+          Name: input.templateName,
+          categoryName: input.templateCategory === "" ? getTemplate?.categoryName : input.templateCategory,
+          isActive: getTemplate?.isActive,
+          roleName: input.templateCategory === "" ? getTemplate?.categoryName : input.templateCategory
+        }
+      })
+
+      return updatedTemplate;
+    })
 });
 
 export type AppRouter = typeof appRouter;

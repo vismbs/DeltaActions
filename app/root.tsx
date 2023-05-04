@@ -30,9 +30,6 @@ export default function App() {
         <ScrollRestoration />
         <Scripts />
         <LiveReload />
-        <p className="w-full text-center text-xs mb-5 text-stone-500 font-sans">
-          DeltaActions | Delta #2
-        </p>
       </body>
     </html>
   );

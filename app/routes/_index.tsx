@@ -5,8 +5,7 @@ import {
   LoaderFunction,
   json,
 } from "@remix-run/node";
-import { Link, useFetcher, useLoaderData } from "@remix-run/react";
-import { useState } from "react";
+import { Link, useLoaderData } from "@remix-run/react";
 import PromptBar from "~/components/PromptBar";
 import { openAI } from "~/services/openai.server";
 import { serverAPI } from "~/services/router.server";
@@ -32,6 +31,27 @@ class AIFunctions {
 
     return addedTemplate;
   }
+
+  @AIMethod("deletes a template and takes in a template id")
+  deleteTemplate(templateID: string) {
+    const deletedTemplate = serverAPI.deleteTemplate({
+      templateID
+    })
+
+    return deletedTemplate;
+  }
+
+  @AIMethod("updates the title of a template and takes in a template title and template id")
+  updateTitle(templateTitle: string, templateID: string) {
+    const updatedTemplate = serverAPI.editTemplate({
+      templateName: templateTitle,
+      templateCategory: "",
+      templateID: templateID,
+      templateRole: ""
+    })
+
+    return updatedTemplate
+  }
 }
 
 const UserInstance = new AIFunctions();
@@ -52,9 +72,14 @@ export const action: ActionFunction = async ({ request }: ActionArgs) => {
       methodList
     )}. This is the user prompt: ${formData.get("prompt_box")}`,
     temperature: 0,
+    max_tokens: 300
   });
 
-  eval(`UserInstance.${evalFunction.data.choices[0].text?.replace("\n", "")}`);
+  try {
+    eval(`UserInstance.${evalFunction.data.choices[0].text?.replace("\n", "")}`);
+  } catch (err) {
+    console.error(err);
+  }
 
   return json({});
 };
@@ -62,18 +87,18 @@ export const action: ActionFunction = async ({ request }: ActionArgs) => {
 const IndexPage = () => {
   const { existingTemplates }: { existingTemplates: Template[] } =
     useLoaderData<typeof loader>();
-  const dataFetcher = useFetcher();
-
-  const [templates, setTemplates] = useState(existingTemplates);
 
   return (
     <>
       <main className="w-full flex flex-col justify-between h-screen">
         <div className="mt-5">
-          <Table tableData={templates} />
+          <Table tableData={existingTemplates} />
         </div>
         <div>
           <PromptBar actionRoute="?index" />
+          <p className="w-full text-center text-xs mb-5 text-stone-500 font-sans">
+            DeltaActions | Delta #2
+          </p>
         </div>
       </main>
     </>
@@ -103,12 +128,12 @@ function Table({ tableData }: { tableData: Template[] }) {
                 <p className="w-2/12">{tableRows.ID}</p>
                 <p className="w-4/12">{tableRows.Name}</p>
                 <p className="w-2/12">
-                  {tableRows.categoryName
+                  {(tableRows.categoryName.length !== 2) ? tableRows.categoryName
                     .split(" ")
                     .map(
                       (word) => word.charAt(0).toUpperCase() + word.substring(1)
                     )
-                    .join(" ")}
+                    .join(" ") : tableRows.categoryName.toUpperCase()}
                 </p>
                 <p className="w-2/12">
                   {tableRows.roleName
