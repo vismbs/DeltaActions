@@ -4,20 +4,25 @@ import { useLoaderData } from "@remix-run/react";
 import PromptBar from "~/components/PromptBar";
 import { serverAPI } from "~/services/router.server";
 
+let logMessage = "Functions Intialized";
+
 export const loader: LoaderFunction = async ({ params }) => {
   const { kra } = params;
 
-  const loadTemplate: {} | Template | null = !kra ? {} : await serverAPI.getSingleTemplate({
-    templateID: kra
-  })
+  const loadTemplate: {} | Template | null = !kra
+    ? {}
+    : await serverAPI.getSingleTemplate({
+        templateID: kra,
+      });
 
   return json({
-    loadTemplate
-  })
-}
+    loadTemplate,
+  });
+};
 
 export default function KRAPage() {
-  const { loadTemplate }: { loadTemplate: Template } = useLoaderData<typeof loader>();
+  const { loadTemplate }: { loadTemplate: Template } =
+    useLoaderData<typeof loader>();
   return (
     <>
       <main className="w-full flex flex-col justify-between h-screen">
@@ -33,7 +38,7 @@ export default function KRAPage() {
             <Row />
           </div>
         </div>
-        <PromptBar actionRoute="?index" />
+        <PromptBar actionRoute="?index" logMessage={logMessage} />
       </main>
     </>
   );

@@ -1,6 +1,12 @@
 import { useFetcher } from "@remix-run/react";
 
-export default function PromptBar({ actionRoute, isNotAFunction, logMessage }: { actionRoute: string, isNotAFunction: boolean, logMessage: string }) {
+export default function PromptBar({
+  actionRoute,
+  logMessage,
+}: {
+  actionRoute: string;
+  logMessage: string;
+}) {
   const dataFetcher = useFetcher();
   return (
     <div className="m-12">
@@ -20,12 +26,21 @@ export default function PromptBar({ actionRoute, isNotAFunction, logMessage }: {
         </button>
       </dataFetcher.Form>
       <div className="flex items-center ml-2">
-        <div className="h-[5px] w-[5px] rounded-full mr-3" style={{
-          backgroundColor: (logMessage === "Functions Initialized") ? "green" : "red"
-        }}></div>
-        <p className="text-xs font-sans" style={{
-          color: (logMessage === "Functions Initialized") ? "green" : "red"
-        }}>{logMessage}</p>
+        <div
+          className="h-[5px] w-[5px] rounded-full mr-3"
+          style={{
+            backgroundColor:
+              logMessage === "Functions Initialized" ? "green" : "red",
+          }}
+        ></div>
+        <p
+          className="text-xs font-sans"
+          style={{
+            color: logMessage === "Functions Initialized" ? "green" : "red",
+          }}
+        >
+          {logMessage}
+        </p>
       </div>
     </div>
   );

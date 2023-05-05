@@ -28,7 +28,7 @@ export const appRouter = trpcRouter({
         },
       });
 
-      if (!getCategory) return "Category Not Found"
+      if (!getCategory) return "Category Not Found";
 
       const createdTemplate = await ctx.prisma.template.create({
         data: {
@@ -47,107 +47,136 @@ export const appRouter = trpcRouter({
     return existingTemplate;
   }),
   getSingleTemplate: publicProcedure
-    .input(z.object({
-      templateID: z.string()
-    }))
+    .input(
+      z.object({
+        templateID: z.string(),
+      })
+    )
     .query(async ({ input, ctx }) => {
       const uniqueTemplate = await ctx.prisma.template.findUnique({
         where: {
-          ID: input.templateID
+          ID: input.templateID,
         },
         include: {
           Category: {
             include: {
-              Roles: true
-            }
-          }
-        }
-      })
+              Roles: true,
+            },
+          },
+        },
+      });
 
       return uniqueTemplate;
     }),
   deleteTemplate: publicProcedure
-    .input(z.object({
-      templateID: z.string()
-    }))
+    .input(
+      z.object({
+        templateID: z.string(),
+      })
+    )
     .mutation(async ({ input, ctx }) => {
       const deletedTemplate = await ctx.prisma.template.delete({
         where: {
-          ID: input.templateID
-        }
-      })
+          ID: input.templateID,
+        },
+      });
 
-      return deletedTemplate
+      return deletedTemplate;
     }),
   editTemplateName: publicProcedure
-    .input(z.object({
-      templateID: z.string(),
-      templateName: z.string(),
-    }))
+    .input(
+      z.object({
+        templateID: z.string(),
+        templateName: z.string(),
+      })
+    )
     .mutation(async ({ input, ctx }) => {
       const updatedTemplate = await ctx.prisma.template.update({
         where: {
-          ID: input.templateID
+          ID: input.templateID,
         },
         data: {
           Name: input.templateName,
-        }
-      })
+        },
+      });
 
       return updatedTemplate;
     }),
-  editTemplateCategory: publicProcedure
-    .input(z.object({
-      templateID: z.string(),
-      templateCategory: z.string(),
-      templateRole: z.string(),
-    }))
+  toggleTemplateStatus: publicProcedure
+    .input(
+      z.object({
+        templateID: z.string(),
+        currentStatus: z.boolean(),
+      })
+    )
     .mutation(async ({ input, ctx }) => {
       const updatedTemplate = await ctx.prisma.template.update({
         where: {
-          ID: input.templateID
+          ID: input.templateID,
+        },
+        data: {
+          isActive: !input.currentStatus,
+        },
+      });
+    }),
+  editTemplateCategory: publicProcedure
+    .input(
+      z.object({
+        templateID: z.string(),
+        templateCategory: z.string(),
+        templateRole: z.string(),
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
+      const updatedTemplate = await ctx.prisma.template.update({
+        where: {
+          ID: input.templateID,
         },
         data: {
           categoryName: input.templateCategory,
-          roleName: input.templateRole
-        }
-      })
+          roleName: input.templateRole,
+        },
+      });
 
       return updatedTemplate;
     }),
   editTemplateRole: publicProcedure
-    .input(z.object({
-      templateID: z.string(),
-      templateRole: z.string(),
-    }))
+    .input(
+      z.object({
+        templateID: z.string(),
+        templateRole: z.string(),
+      })
+    )
     .mutation(async ({ input, ctx }) => {
       const updatedTemplate = await ctx.prisma.template.update({
         where: {
-          ID: input.templateID
+          ID: input.templateID,
         },
         data: {
-          roleName: input.templateRole
-        }
-      })
+          roleName: input.templateRole,
+        },
+      });
 
       return updatedTemplate;
     }),
   getCategory: publicProcedure
-    .input(z.object({
-      categoryName: z.string()
-    }))
+    .input(
+      z.object({
+        categoryName: z.string(),
+      })
+    )
     .query(async ({ input, ctx }) => {
       const getCategory = await ctx.prisma.category.findUnique({
         where: {
-          Name: input.categoryName
+          Name: input.categoryName,
         },
         include: {
-          Roles: true
-        }
-      })
+          Roles: true,
+        },
+      });
 
       return getCategory;
-    })
+    }),
 });
 
 export type AppRouter = typeof appRouter;

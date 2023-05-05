@@ -23,6 +23,7 @@ model Template {
   categoryName String
   roleName     String
   isActive     Boolean
+  KRA          KRA[]
 }
 
 model Category {
@@ -36,4 +37,25 @@ model Role {
   categoryName String
   Template     Template[]
   Category     Category?  @relation(fields: [categoryName], references: [Name])
+}
+
+model KRA {
+  ID                     String             @id @unique
+  EvaluationCategory     EvaluationCategory @relation(fields: [evaluationCategoryName], references: [Name])
+  evaluationCategoryName String
+  Name                   String
+  Template               Template?          @relation(fields: [templateID], references: [ID])
+  templateID             String?
+}
+
+model EvaluationCategory {
+  Name String @id @unique
+  KRA  KRA[]
+}
+
+model KPI {
+  ID        String @id @unique
+  Name      String
+  Weightage Int
+  Rating    Int
 }
